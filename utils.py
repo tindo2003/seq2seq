@@ -25,7 +25,7 @@ class Indexer(object):
     def __len__(self):
         return len(self.objs_to_ints)
 
-    def get_object(self, index):
+    def get_object(self, index) -> object:
         """
         :param index: integer index to look up
         :return: Returns the object corresponding to the particular index or None if not found
@@ -35,14 +35,14 @@ class Indexer(object):
         else:
             return self.ints_to_objs[index]
 
-    def contains(self, object):
+    def contains(self, object) -> bool:
         """
         :param object: object to look up
         :return: Returns True if it is in the Indexer, False otherwise
         """
         return self.index_of(object) != -1
 
-    def index_of(self, object):
+    def index_of(self, object) -> int:
         """
         :param object: object to look up
         :return: Returns -1 if the object isn't present, index otherwise

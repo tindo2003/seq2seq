@@ -1,5 +1,5 @@
 from utils import *
-from typing import List, Tuple
+from typing import List, Tuple, Union
 import random
 from collections import Counter
 
@@ -72,7 +72,7 @@ EOS_SYMBOL = "<EOS>"
 
 def load_datasets(
     train_path: str, dev_path: str, test_path: str, domain=None
-) -> (List[Tuple[str, str]], List[Tuple[str, str]], List[Tuple[str, str]]):
+) -> Union[List[Tuple[str, str]], List[Tuple[str, str]], List[Tuple[str, str]]]:
     """
     Reads the training, dev, and test data from the corresponding files.
     :param train_path:
@@ -127,7 +127,7 @@ def index(x_tok: List[str], indexer: Indexer) -> List[int]:
 
 def index_data(
     data, input_indexer: Indexer, output_indexer: Indexer, example_len_limit
-):
+) -> List[Example]:
     """
     Indexes the given data
     :param data:
@@ -155,7 +155,7 @@ def index_data(
 
 def index_datasets(
     train_data, dev_data, test_data, example_len_limit, unk_threshold=0.0
-) -> (List[Example], List[Example], List[Example], Indexer, Indexer):
+) -> Union[List[Example], List[Example], List[Example], Indexer, Indexer]:
     """
     Indexes train and test datasets where all words occurring less than or equal to unk_threshold times are
     replaced by UNK tokens.
@@ -271,10 +271,33 @@ def render_ratio(numer, denom):
 
 def geoquery_preprocess_lf(lf):
     """
-    Geoquery preprocessing adapted from Jia and Liang. Standardizes variable names with De Brujin indices -- just a
-    smarter way of indexing variables in statements to make parsing easier.
-    :param lf:
-    :return:
+    Preprocesses a logical form (LF) string for the Geoquery dataset using De Bruijn indexing.
+
+    This function standardizes variable names in the logical form, making it easier to parse
+    and process. It implements a technique adapted from Jia and Liang's work on semantic parsing.
+
+    The preprocessing steps are as follows:
+    1. Splits the input string into tokens.
+    2. Iterates through each token:
+       - If the token is a single alphabetic character (potential variable):
+         * If it's a new variable, replaces it with 'NV' (New Variable).
+         * If it's a previously seen variable, replaces it with 'Vn', where n is its
+           index from the end of the current variable list.
+       - Other tokens are left unchanged.
+    3. Rejoins the processed tokens into a single string.
+
+    This method effectively converts variable names into a standardized format,
+    which can help in reducing variability and improving consistency in the logical forms.
+
+    Args:
+    lf (str): The input logical form string to be preprocessed.
+
+    Returns:
+    str: The preprocessed logical form with standardized variable naming.
+
+    Example:
+    >>> geoquery_preprocess_lf("lambda x (and (river x) (traverse x y))")
+    "lambda NV ( and ( river V0 ) ( traverse V0 NV ) )"
     """
     cur_vars = []
     toks = lf.split(" ")

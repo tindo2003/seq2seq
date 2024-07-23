@@ -38,7 +38,7 @@ def evaluate(test_data: List[Example], decoder, example_freq=50, print_output=Tr
     return res
 
 # Find the top-scoring derivation that executed without error
-def pick_derivations(all_pred_dens, all_derivs, is_error_fn):
+def pick_derivations(all_pred_dens: List[str], all_derivs: List[List[Derivation]], is_error_fn) -> Tuple[List[Derivation], List[str]]:
     derivs = []
     pred_dens = []
     cur_start = 0
@@ -122,6 +122,13 @@ class GeoqueryDomain(object):
         return lf
 
     def get_denotation(self, line):
+        """
+        Extracts the denotation from a given line of text.
+
+        This function attempts to find and return the content enclosed within the first
+        pair of curly braces {} in the input line. If no such content is found, it returns
+        the entire line stripped of leading and trailing whitespace.
+        """
         m = re.search('\{[^}]*\}', line)
         if m:
             return m.group(0)
@@ -179,8 +186,8 @@ class GeoqueryDomain(object):
             exit()
         tf.close()
         denotations = [self.get_denotation(line)
-                       for line in msg.split('\n')
-                       if line.startswith('        Example')]
+                    for line in msg.split('\n')
+                    if line.startswith('        Example')]
         true_dens = denotations[:len(true_answers)]
         if len(true_dens) == 0:
             true_dens = ["" for i in range(0, len(true_answers))]
@@ -228,7 +235,7 @@ class OvernightEvaluator(object):
         # Put all "true" answers at the start of the list, then add all derivations that
         # were produced by decoding
         all_lfs = ([self.format_lf(s) for s in true_answers] +
-                   [self.format_lf(' '.join(d.y_toks))
+                [self.format_lf(' '.join(d.y_toks))
                     for x in all_derivs for d in x])
         tf_lines = all_lfs
         tf = tempfile.NamedTemporaryFile(suffix='.examples')
@@ -242,7 +249,7 @@ class OvernightEvaluator(object):
         tf.close()
         print(len(all_lfs))
         denotations = [line.split('\t')[1] for line in msg.decode("utf-8").split('\n')
-                       if line.startswith('targetValue\t')]
+                    if line.startswith('targetValue\t')]
         print(len(denotations))
         print(len(true_answers))
         true_dens = denotations[:len(true_answers)]
